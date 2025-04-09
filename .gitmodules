@@ -1,3 +1,6 @@
 [submodule "rpi-rgb-led-matrix"]
-	path = rpi-rgb-led-matrix
+	path = libs/rpi-rgb-led-matrix
 	url = https://github.com/hzeller/rpi-rgb-led-matrix
+[submodule "libs/IXWebSocket"]
+	path = libs/IXWebSocket
+	url = https://github.com/machinezone/IXWebSocket.git

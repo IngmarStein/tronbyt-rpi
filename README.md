@@ -25,7 +25,7 @@ Now download either the latest binary release from https://github.com/tronbyt/tr
 ```sh
 # Install dependencies
 sudo apt-get update
-sudo apt-get -y install git libwebp-dev libssl-dev
+sudo apt-get -y install git libwebp-dev libssl-dev zlib1g-dev
 
 # Clone repository
 git clone https://github.com/tronbyt/tronberry.git
@@ -38,7 +38,7 @@ make
 ## Running
 
 ```sh
-# The Tronbyt URL ends in /next
+# The Tronbyt URL looks like http(s)://…/next or ws(s)://…/ws
 sudo ./tronberry ${TRONBYT_URL}
 ```
 
