@@ -28,7 +28,7 @@ sudo apt-get update
 sudo apt-get -y install git libwebp-dev libssl-dev zlib1g-dev
 
 # Clone repository
-git clone https://github.com/tronbyt/tronberry.git
+git clone --recurse-submodules https://github.com/tronbyt/tronberry.git
 
 # Build
 cd tronberry
