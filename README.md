@@ -62,3 +62,11 @@ WantedBy=multi-user.target
 Then run `sudo systemctl enable tronberry` to enable the new service.
 
 To start it manually, run `sudo systemctl start tronberry`.
+
+You may want to configure your Pi to automatically reconnect to the WiFi in case the
+connection is interrupted, so that it'll display fresh images as soon as the WiFi
+becomes available again:
+
+```
+sudo nmcli connection modify "{YOUR_WIFI_SSID}" connection.autoconnect-retries 0
+```

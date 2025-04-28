@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
       }
       if (msg->type == ix::WebSocketMessageType::Message) {
         if (msg->binary) {
-          ResponseData response = {msg->str, brightness.load(), -1};
+          ResponseData response = {msg->str, brightness.load(), 0};
           add_to_queue(std::move(response));
         } else {
           auto json_message = nlohmann::json::parse(msg->str, nullptr, false);
@@ -204,13 +204,15 @@ int main(int argc, char *argv[]) {
             return;
           }
 
-          //std::cout << "Received JSON message: " << json_message.dump() << std::endl;
+          // std::cout << "Received JSON message: " << json_message.dump() <<
+          // std::endl;
 
           if (json_message.contains("brightness") &&
               json_message["brightness"].is_number_integer()) {
             int new_brightness = json_message["brightness"].get<int>();
             if (new_brightness < 0 || new_brightness > 100) {
-              std::cerr << "Invalid brightness value: " << new_brightness << std::endl;
+              std::cerr << "Invalid brightness value: " << new_brightness
+                        << std::endl;
               return;
             }
             brightness.store(new_brightness);
@@ -233,27 +235,26 @@ int main(int argc, char *argv[]) {
     });
     ws_client.start();
   } else {
-    size_t path_start = url.find(
-        '/', scheme_end + 3);  // Find the start of the path after the scheme
-    httplib::Client client(
-        url.substr(0, path_start != std::string::npos
-                          ? path_start
-                          : url.length()));  // Extract base URL
-    if (client.is_valid() == false) {
+    // Find the start of the path after the scheme
+    auto path_start = url.find('/', scheme_end + 3);
+    auto base_url = url.substr(
+        0, path_start != std::string::npos ? path_start : url.length());
+    auto client = std::make_shared<httplib::Client>(base_url);
+    if (!client->is_valid()) {
       std::cerr << "Invalid URL: Unable to create client" << std::endl;
       return 1;
     }
-    client.set_default_headers(
+    client->set_default_headers(
         {{"User-Agent", "Tronberry/1.0"},
          {"Accept", "image/webp, image/*;q=0.8, */*;q=0.5"}});
-    std::string path = path_start != std::string::npos
-                           ? url.substr(path_start)
-                           : "/";  // Extract path or default to "/"
+    auto path = path_start != std::string::npos
+                    ? url.substr(path_start)
+                    : "/";  // Extract path or default to "/"
 
-    fetch_thread = std::thread([&]() {
+    fetch_thread = std::thread([&, client, path]() mutable {
       int retry_count = 0;
       while (running) {
-        auto res = client.Get(path.c_str());
+        auto res = client->Get(path.c_str());
         if (!res || res->status != 200) {
           std::cerr << "Failed to fetch image from URL: " << url << std::endl;
           int wait_time = std::min(
@@ -274,7 +275,8 @@ int main(int argc, char *argv[]) {
 
         char *end_ptr = nullptr;
         response.brightness = std::strtol(brightness_str.c_str(), &end_ptr, 10);
-        if (*end_ptr != '\0' || response.brightness < 0 || response.brightness > 100) {
+        if (*end_ptr != '\0' || response.brightness < 0 ||
+            response.brightness > 100) {
           std::cerr << "Invalid brightness header value: " << brightness_str
                     << std::endl;
           response.brightness = 0;
